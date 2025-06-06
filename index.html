@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>LED Strip Controller</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1a1a2e">
+    <meta name="description" content="Advanced LED Strip Controller with Bluetooth connectivity">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ff6b6b'%3E%3Cpath d='M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z'/%3E%3C/svg%3E">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Tab Navigation -->
+        <div class="tab-navigation">
+            <button class="tab-btn active" data-tab="controller">Controller</button>
+            <button class="tab-btn" data-tab="remote">Remote Mock</button>
+        </div>
+
+        <!-- Controller Tab -->
+        <div id="controllerTab" class="tab-content active">
+            <!-- Header -->
+            <header class="header">
+                <h1 class="app-title">
+                    <svg class="logo" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                    LED Controller
+                </h1>
+                <div class="connection-status" id="connectionStatus">
+                    <span class="status-dot"></span>
+                    <span class="status-text">Disconnected</span>
+                </div>
+            </header>
+
+        <!-- Connection Section -->
+        <section class="connection-section">
+            <button id="connectBtn" class="btn btn-primary">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M17.71 7.71L12 2h-1v7.59L6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 11 14.41V22h1l5.71-5.71-4.3-4.29 4.3-4.29zM13 5.83l1.88 1.88L13 9.59V5.83zm1.88 10.46L13 18.17v-3.76l1.88 1.88z"/>
+                </svg>
+                Connect Device
+            </button>
+            <button id="disconnectBtn" class="btn btn-secondary" disabled>
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/>
+                </svg>
+                Disconnect
+            </button>
+        </section>
+
+        <!-- Power Controls -->
+        <section class="power-section">
+            <h2>Power Control</h2>
+            <div class="power-controls">
+                <button id="powerOnBtn" class="btn btn-success" disabled>
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M8 5v14l11-7z"/>
+                    </svg>
+                    ON
+                </button>
+                <button id="powerOffBtn" class="btn btn-danger" disabled>
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M6 6h12v12H6z"/>
+                    </svg>
+                    OFF
+                </button>
+            </div>
+        </section>
+
+        <!-- Quick Colors -->
+        <section class="quick-colors-section">
+            <h2>Quick Colors</h2>
+            <div class="color-grid">
+                <button class="color-btn" data-color="255,0,0" style="background-color: #ff0000;" disabled>Red</button>
+                <button class="color-btn" data-color="0,255,0" style="background-color: #00ff00;" disabled>Green</button>
+                <button class="color-btn" data-color="0,0,255" style="background-color: #0000ff;" disabled>Blue</button>
+                <button class="color-btn" data-color="255,255,0" style="background-color: #ffff00;" disabled>Yellow</button>
+                <button class="color-btn" data-color="0,255,255" style="background-color: #00ffff;" disabled>Cyan</button>
+                <button class="color-btn" data-color="255,0,255" style="background-color: #ff00ff;" disabled>Purple</button>
+                <button class="color-btn white-btn" data-color="255,255,255" style="background-color: #ffffff;" disabled>White</button>
+                <button class="color-btn" data-color="255,165,0" style="background-color: #ffa500;" disabled>Orange</button>
+            </div>
+        </section>
+
+        <!-- Custom Color -->
+        <section class="custom-color-section">
+            <h2>Custom Color</h2>
+            <div class="color-picker-container">
+                <input type="color" id="customColorPicker" class="color-picker" value="#ff0000" disabled>
+                <button id="setCustomColorBtn" class="btn btn-primary" disabled>Apply Color</button>
+            </div>
+            <div class="color-preview" id="colorPreview"></div>
+        </section>
+
+        <!-- Control Sliders -->
+        <section class="controls-section">
+            <div class="control-group">
+                <label for="brightnessSlider">Brightness</label>
+                <div class="slider-container">
+                    <input type="range" id="brightnessSlider" class="slider" min="0" max="100" value="50" disabled>
+                    <span class="slider-value" id="brightnessValue">50%</span>
+                </div>
+            </div>
+            <div class="control-group">
+                <label for="speedSlider">Speed</label>
+                <div class="slider-container">
+                    <input type="range" id="speedSlider" class="slider" min="0" max="100" value="50" disabled>
+                    <span class="slider-value" id="speedValue">50%</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Patterns -->
+        <section class="patterns-section">
+            <h2>Patterns</h2>
+            <div class="pattern-grid" id="patternGrid">
+                <!-- Patterns will be populated by JavaScript -->
+            </div>
+        </section>
+
+        <!-- Microphone Controls -->
+        <section class="microphone-section">
+            <h2>Microphone Mode</h2>
+            <div class="mic-controls">
+                <div class="mic-toggle">
+                    <button id="micToggleBtn" class="btn btn-secondary" disabled>
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                            <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5"/>
+                        </svg>
+                        <span id="micToggleText">Enable Mic</span>
+                    </button>
+                </div>
+                <div class="eq-controls">
+                    <label>EQ Mode</label>
+                    <select id="eqModeSelect" class="select" disabled>
+                        <option value="0">Classic</option>
+                        <option value="1">Soft</option>
+                        <option value="2">Dynamic</option>
+                        <option value="3">Disco</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="micSensitivitySlider">Sensitivity</label>
+                    <div class="slider-container">
+                        <input type="range" id="micSensitivitySlider" class="slider" min="0" max="100" value="50" disabled>
+                        <span class="slider-value" id="micSensitivityValue">50%</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Music Visualizer -->
+        <section class="music-section">
+            <h2>Music Visualizer</h2>
+            <div class="music-controls">
+                <button id="enableMusicBtn" class="btn btn-secondary" disabled>
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+                    </svg>
+                    <span id="musicToggleText">Enable Music Mode</span>
+                </button>
+                <div class="visualizer-container" id="visualizerContainer">
+                    <canvas id="visualizerCanvas" width="300" height="60"></canvas>
+                </div>
+                <div class="music-settings">
+                    <div class="control-group">
+                        <label for="musicSensitivitySlider">Music Sensitivity</label>
+                        <div class="slider-container">
+                            <input type="range" id="musicSensitivitySlider" class="slider" min="1" max="10" value="5" disabled>
+                            <span class="slider-value" id="musicSensitivityValue">5</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Color Schemes -->
+        <section class="color-schemes-section">
+            <h2>Color Schemes</h2>
+            <div class="scheme-grid">
+                <button class="scheme-btn" data-scheme="rainbow" disabled>
+                    <div class="scheme-preview rainbow-preview"></div>
+                    Rainbow
+                </button>
+                <button class="scheme-btn" data-scheme="sunset" disabled>
+                    <div class="scheme-preview sunset-preview"></div>
+                    Sunset
+                </button>
+                <button class="scheme-btn" data-scheme="ocean" disabled>
+                    <div class="scheme-preview ocean-preview"></div>
+                    Ocean
+                </button>
+                <button class="scheme-btn" data-scheme="forest" disabled>
+                    <div class="scheme-preview forest-preview"></div>
+                    Forest
+                </button>
+                <button class="scheme-btn" data-scheme="fire" disabled>
+                    <div class="scheme-preview fire-preview"></div>
+                    Fire
+                </button>
+                <button class="scheme-btn" data-scheme="ice" disabled>
+                    <div class="scheme-preview ice-preview"></div>
+                    Ice
+                </button>
+            </div>
+        </section>
+
+        <!-- Timer & Scheduler -->
+        <section class="timer-section">
+            <h2>Timer & Scheduler</h2>
+            <div class="timer-controls">
+                <div class="timer-input-group">
+                    <label>Auto Turn Off Timer</label>
+                    <div class="timer-inputs">
+                        <input type="number" id="timerHours" min="0" max="23" value="0" disabled>
+                        <span>h</span>
+                        <input type="number" id="timerMinutes" min="0" max="59" value="30" disabled>
+                        <span>m</span>
+                        <button id="startTimerBtn" class="btn btn-warning" disabled>Start Timer</button>
+                        <button id="stopTimerBtn" class="btn btn-secondary" disabled>Stop</button>
+                    </div>
+                </div>
+                <div class="timer-display" id="timerDisplay">
+                    Timer: Not Active
+                </div>
+            </div>
+        </section>
+
+        <!-- Presets -->
+        <section class="presets-section">
+            <h2>Custom Presets</h2>
+            <div class="presets-controls">
+                <div class="preset-input-group">
+                    <input type="text" id="presetNameInput" placeholder="Preset name..." disabled>
+                    <button id="savePresetBtn" class="btn btn-primary" disabled>Save Preset</button>
+                </div>
+                <div class="presets-grid" id="presetsGrid">
+                    <!-- Presets will be populated dynamically -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Advanced Features -->
+        <section class="advanced-section">
+            <h2>Advanced Features</h2>
+            <div class="advanced-controls">
+                <button id="syncTimeBtn" class="btn btn-secondary" disabled>
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/>
+                        <path d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
+                    </svg>
+                    Sync Time
+                </button>
+                <button id="fadeEffectBtn" class="btn btn-secondary" disabled>
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                    <span id="fadeEffectText">Start Fade</span>
+                </button>
+                <button id="strobeBtn" class="btn btn-secondary" disabled>
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z"/>
+                    </svg>
+                    <span id="strobeText">Start Strobe</span>
+                </button>
+                <button id="randomModeBtn" class="btn btn-secondary" disabled>
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/>
+                    </svg>
+                    <span id="randomText">Random Mode</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- Scenes & Ambiance -->
+        <section class="scenes-section">
+            <h2>Smart Scenes</h2>
+            <div class="scenes-grid">
+                <button class="scene-btn" data-scene="reading" disabled>
+                    <div class="scene-icon">📚</div>
+                    <span>Reading</span>
+                </button>
+                <button class="scene-btn" data-scene="party" disabled>
+                    <div class="scene-icon">🎉</div>
+                    <span>Party</span>
+                </button>
+                <button class="scene-btn" data-scene="relax" disabled>
+                    <div class="scene-icon">🧘</div>
+                    <span>Relax</span>
+                </button>
+                <button class="scene-btn" data-scene="gaming" disabled>
+                    <div class="scene-icon">🎮</div>
+                    <span>Gaming</span>
+                </button>
+                <button class="scene-btn" data-scene="sleep" disabled>
+                    <div class="scene-icon">😴</div>
+                    <span>Sleep</span>
+                </button>
+                <button class="scene-btn" data-scene="movie" disabled>
+                    <div class="scene-icon">🎬</div>
+                    <span>Movie</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- Weather Sync -->
+        <section class="weather-section">
+            <h2>Weather Sync</h2>
+            <div class="weather-controls">
+                <button id="enableWeatherBtn" class="btn btn-secondary" disabled>
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12.74 5.47c-.18-.38-.52-.59-.87-.59s-.69.21-.87.59L6.8 18.21c-.25.52-.02 1.17.51 1.42.53.25 1.18.02 1.42-.51L10.5 15h3l1.77 3.12c.25.53.89.76 1.42.51.53-.25.76-.9.51-1.42L12.74 5.47zM11.5 13l.5-1 .5 1h-1z"/>
+                    </svg>
+                    <span id="weatherToggleText">Enable Weather Sync</span>
+                </button>
+                <div class="weather-display" id="weatherDisplay">
+                    <div class="weather-info">
+                        <span class="weather-condition" id="weatherCondition">--</span>
+                        <span class="weather-temp" id="weatherTemp">--°</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Audio Reactive -->
+        <section class="audio-reactive-section">
+            <h2>Audio Reactive Pro</h2>
+            <div class="audio-controls">
+                <div class="frequency-display">
+                    <canvas id="frequencyCanvas" width="300" height="100"></canvas>
+                </div>
+                <div class="audio-settings">
+                    <div class="control-group">
+                        <label for="audioModeSelect">Reactive Mode</label>
+                        <select id="audioModeSelect" class="select" disabled>
+                            <option value="bass">Bass Boost</option>
+                            <option value="spectrum">Full Spectrum</option>
+                            <option value="beat">Beat Detection</option>
+                            <option value="ambient">Ambient</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label for="audioThresholdSlider">Threshold</label>
+                        <div class="slider-container">
+                            <input type="range" id="audioThresholdSlider" class="slider" min="1" max="100" value="30" disabled>
+                            <span class="slider-value" id="audioThresholdValue">30%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Gesture Control -->
+        <section class="gesture-section">
+            <h2>Gesture Control</h2>
+            <div class="gesture-controls">
+                <button id="enableGestureBtn" class="btn btn-secondary" disabled>
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M23 5.5V20c0 2.2-1.8 4-4 4h-7.3c-1.08 0-2.1-.43-2.85-1.19L1 14.83v-1.89L2.79 15c.78.78 1.81 1.19 2.87 1.19H6v-1H5c-.55 0-1.05-.22-1.41-.59c-.36-.36-.59-.86-.59-1.41v-.03l6.39-6.56c.36-.37.85-.6 1.39-.6H17V5.5c0-.28.22-.5.5-.5s.5.22.5.5zM19 7v5c0 1.1-.9 2-2 2h-7c-.55 0-1-.45-1-1s.45-1 1-1h7V7h2z"/>
+                    </svg>
+                    <span id="gestureToggleText">Enable Gestures</span>
+                </button>
+                <div class="gesture-help" id="gestureHelp">
+                    <div class="gesture-item">
+                        <span class="gesture-action">👆 Swipe Up:</span>
+                        <span class="gesture-desc">Brightness +</span>
+                    </div>
+                    <div class="gesture-item">
+                        <span class="gesture-action">👇 Swipe Down:</span>
+                        <span class="gesture-desc">Brightness -</span>
+                    </div>
+                    <div class="gesture-item">
+                        <span class="gesture-action">👈 Swipe Left:</span>
+                        <span class="gesture-desc">Previous Color</span>
+                    </div>
+                    <div class="gesture-item">
+                        <span class="gesture-action">👉 Swipe Right:</span>
+                        <span class="gesture-desc">Next Color</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Scheduling -->
+        <section class="schedule-section">
+            <h2>Advanced Scheduling</h2>
+            <div class="schedule-controls">
+                <div class="schedule-input-group">
+                    <label>Sunrise/Sunset Sync</label>
+                    <div class="sunrise-controls">
+                        <button id="enableSunriseBtn" class="btn btn-secondary" disabled>
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M6.76 4.84l-1.8-1.79-1.41 1.41 1.79 1.79 1.42-1.41zM4 10.5H1v2h3v-2zm9-9.95h-2V3.5h2V.55zm7.45 3.91l-1.41-1.41-1.79 1.79 1.41 1.41 1.79-1.79zm-3.21 13.7l1.79 1.8 1.41-1.41-1.8-1.79-1.4 1.4zM20 10.5v2h3v-2h-3zm-8-5c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm-1 16.95h2V19.5h-2v2.95zm-7.45-3.91l1.41 1.41 1.79-1.8-1.41-1.41-1.79 1.8z"/>
+                            </svg>
+                            Auto Sunrise/Sunset
+                        </button>
+                    </div>
+                </div>
+                <div class="custom-schedule">
+                    <h3>Custom Schedule</h3>
+                    <div class="schedule-item">
+                        <input type="time" id="scheduleTime1" disabled>
+                        <select id="scheduleAction1" class="select" disabled>
+                            <option value="on">Turn On</option>
+                            <option value="off">Turn Off</option>
+                            <option value="dim">Dim</option>
+                            <option value="color">Color Change</option>
+                        </select>
+                        <button class="btn btn-primary" id="addSchedule1" disabled>Add</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Gaming Integration -->
+        <section class="gaming-section">
+            <h2>Gaming Integration</h2>
+            <div class="gaming-controls">
+                <div class="game-modes">
+                    <button class="game-mode-btn" data-game="fps" disabled>
+                        <div class="game-icon">🎯</div>
+                        <span>FPS Mode</span>
+                    </button>
+                    <button class="game-mode-btn" data-game="racing" disabled>
+                        <div class="game-icon">🏎️</div>
+                        <span>Racing</span>
+                    </button>
+                    <button class="game-mode-btn" data-game="rpg" disabled>
+                        <div class="game-icon">⚔️</div>
+                        <span>RPG</span>
+                    </button>
+                    <button class="game-mode-btn" data-game="horror" disabled>
+                        <div class="game-icon">👻</div>
+                        <span>Horror</span>
+                    </button>
+                </div>
+                <div class="health-indicator">
+                    <label>Health Simulation</label>
+                    <div class="health-bar">
+                        <div class="health-fill" id="healthFill" style="width: 100%"></div>
+                    </div>
+                    <input type="range" id="healthSlider" class="slider" min="0" max="100" value="100" disabled>
+                </div>
+            </div>
+        </section>
+
+        <!-- Productivity -->
+        <section class="productivity-section">
+            <h2>Productivity & Wellness</h2>
+            <div class="productivity-controls">
+                <div class="pomodoro-timer">
+                    <h3>Pomodoro Timer</h3>
+                    <div class="pomodoro-display" id="pomodoroDisplay">25:00</div>
+                    <div class="pomodoro-controls">
+                        <button id="startPomodoroBtn" class="btn btn-success" disabled>Start Focus</button>
+                        <button id="pausePomodoroBtn" class="btn btn-warning" disabled>Pause</button>
+                        <button id="resetPomodoroBtn" class="btn btn-secondary" disabled>Reset</button>
+                    </div>
+                </div>
+                <div class="eye-care">
+                    <h3>Eye Care Reminder</h3>
+                    <button id="enableEyeCareBtn" class="btn btn-secondary" disabled>
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+                        </svg>
+                        20-20-20 Rule
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Device Info -->
+        <section class="device-info-section">
+            <h2>Device Information</h2>
+            <div class="device-info" id="deviceInfo">
+                <div class="info-item">
+                    <span class="info-label">Status:</span>
+                    <span class="info-value" id="deviceStatus">Disconnected</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Battery:</span>
+                    <span class="info-value" id="batteryLevel">Unknown</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Signal:</span>
+                    <span class="info-value" id="signalStrength">-</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Uptime:</span>
+                    <span class="info-value" id="uptime">00:00:00</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Commands Sent:</span>
+                    <span class="info-value" id="commandCount">0</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Power Usage:</span>
+                    <span class="info-value" id="powerUsage">-- W</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Status Messages -->
+        <div id="statusMessage" class="status-message hidden">
+            <span class="message-text"></span>
+            <button class="close-btn">&times;</button>
+        </div>
+        </div>
+
+        <!-- Remote Mock Tab -->
+        <div id="remoteTab" class="tab-content">
+            <div class="remote-container">
+                <div class="remote-body">
+                    <!-- Remote Header -->
+                    <div class="remote-header">
+                        <div class="remote-brand">LED Remote</div>
+                        <div class="remote-model">IR-44</div>
+                    </div>
+
+                    <!-- Power and Brightness Controls -->
+                    <div class="remote-row">
+                        <button class="remote-btn brightness-btn" data-action="brightness-up">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1z"/>
+                            </svg>
+                        </button>
+                        <button class="remote-btn brightness-btn" data-action="brightness-down">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1z"/>
+                            </svg>
+                        </button>
+                        <button class="remote-btn power-btn off" data-action="power-off">OFF</button>
+                        <button class="remote-btn power-btn on" data-action="power-on">ON</button>
+                    </div>
+
+                    <!-- Primary Colors Row 1 -->
+                    <div class="remote-row">
+                        <button class="remote-btn color-btn red" data-color="255,0,0" data-action="color"></button>
+                        <button class="remote-btn color-btn green" data-color="0,255,0" data-action="color"></button>
+                        <button class="remote-btn color-btn blue" data-color="0,0,255" data-action="color"></button>
+                        <button class="remote-btn function-btn" data-action="white">W</button>
+                    </div>
+
+                    <!-- Colors Row 2 -->
+                    <div class="remote-row">
+                        <button class="remote-btn color-btn" style="background-color: #ff4500;" data-color="255,69,0" data-action="color"></button>
+                        <button class="remote-btn color-btn" style="background-color: #32cd32;" data-color="50,205,50" data-action="color"></button>
+                        <button class="remote-btn color-btn" style="background-color: #1e90ff;" data-color="30,144,255" data-action="color"></button>
+                        <button class="remote-btn function-btn" data-action="flash">FLASH</button>
+                    </div>
+
+                    <!-- Colors Row 3 -->
+                    <div class="remote-row">
+                        <button class="remote-btn color-btn" style="background-color: #ff8c00;" data-color="255,140,0" data-action="color"></button>
+                        <button class="remote-btn color-btn" style="background-color: #00ff7f;" data-color="0,255,127" data-action="color"></button>
+                        <button class="remote-btn color-btn" style="background-color: #4169e1;" data-color="65,105,225" data-action="color"></button>
+                        <button class="remote-btn function-btn" data-action="strobe">STROBE</button>
+                    </div>
+
+                    <!-- Colors Row 4 -->
+                    <div class="remote-row">
+                        <button class="remote-btn color-btn" style="background-color: #ffd700;" data-color="255,215,0" data-action="color"></button>
+                        <button class="remote-btn color-btn" style="background-color: #00ffff;" data-color="0,255,255" data-action="color"></button>
+                        <button class="remote-btn color-btn" style="background-color: #8a2be2;" data-color="138,43,226" data-action="color"></button>
+                        <button class="remote-btn function-btn" data-action="fade">FADE</button>
+                    </div>
+
+                    <!-- Colors Row 5 -->
+                    <div class="remote-row">
+                        <button class="remote-btn color-btn" style="background-color: #ffff00;" data-color="255,255,0" data-action="color"></button>
+                        <button class="remote-btn color-btn" style="background-color: #40e0d0;" data-color="64,224,208" data-action="color"></button>
+                        <button class="remote-btn color-btn" style="background-color: #ff1493;" data-color="255,20,147" data-action="color"></button>
+                        <button class="remote-btn function-btn" data-action="smooth">SMOOTH</button>
+                    </div>
+
+                    <!-- Speed Controls -->
+                    <div class="remote-row speed-controls">
+                        <button class="remote-btn speed-btn" data-action="speed-up">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M8 5v14l11-7z"/>
+                            </svg>
+                            +
+                        </button>
+                        <button class="remote-btn speed-btn" data-action="speed-down">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M6 6h12v12H6z"/>
+                            </svg>
+                            -
+                        </button>
+                        <button class="remote-btn function-btn" data-action="jump3">JUMP3</button>
+                        <button class="remote-btn function-btn" data-action="jump7">JUMP7</button>
+                    </div>
+
+                    <!-- Mode Controls -->
+                    <div class="remote-row">
+                        <button class="remote-btn function-btn" data-action="auto">AUTO</button>
+                        <button class="remote-btn function-btn" data-action="quick">QUICK</button>
+                        <button class="remote-btn function-btn" data-action="slow">SLOW</button>
+                        <button class="remote-btn function-btn" data-action="diy">DIY</button>
+                    </div>
+
+                    <!-- Connection Status for Remote -->
+                    <div class="remote-status">
+                        <div class="status-indicator" id="remoteStatus">
+                            <span class="status-light"></span>
+                            <span class="status-label">Disconnected</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

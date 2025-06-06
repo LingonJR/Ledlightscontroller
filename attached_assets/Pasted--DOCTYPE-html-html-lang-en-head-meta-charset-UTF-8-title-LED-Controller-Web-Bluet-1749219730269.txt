@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>LED Controller Web Bluetooth</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body { font-family: sans-serif; padding: 20px; text-align: center; background: #111; color: white; }
+    button, input[type="range"] { margin: 10px; padding: 10px 20px; font-size: 18px; border: none; border-radius: 10px; background: #444; color: white; }
+    button:disabled { background: #666; }
+    .color-picker { width: 100px; height: 40px; border: none; border-radius: 10px; }
+    .row { margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <h1>LED Controller</h1>
+  <button id="connectBtn">Connect to LED Controller</button>
+  <button id="disconnectBtn" disabled>Disconnect</button>
+
+  <div class="row">
+    <button id="onBtn" disabled>Turn On</button>
+    <button id="offBtn" disabled>Turn Off</button>
+  </div>
+
+  <div class="row">
+    <button id="redBtn" disabled>Red</button>
+    <button id="greenBtn" disabled>Green</button>
+    <button id="blueBtn" disabled>Blue</button>
+  </div>
+
+  <div class="row">
+    <input type="color" id="customColor" disabled class="color-picker">
+    <button id="setColorBtn" disabled>Set Custom Color</button>
+  </div>
+
+  <div class="row">
+    <label for="brightness">Brightness</label><br/>
+    <input type="range" id="brightness" min="0" max="255" value="128" disabled>
+  </div>
+
+  <div class="row">
+    <h3>Fade between two colors</h3>
+    <input type="color" id="fadeColor1" disabled class="color-picker">
+    <input type="color" id="fadeColor2" disabled class="color-picker">
+    <button id="startFadeBtn" disabled>Start Fade</button>
+    <button id="stopFadeBtn" disabled>Stop Fade</button>
+  </div>
+
+  <script>
+    let device, server, commandCharacteristic, fadeInterval;
+
+    const SERVICE_UUID = '0000fff0-0000-1000-8000-00805f9b34fb';
+    const CHARACTERISTIC_UUID = '0000fff3-0000-1000-8000-00805f9b34fb';
+
+    document.getElementById('connectBtn').onclick = async () => {
+      try {
+        device = await navigator.bluetooth.requestDevice({
+          optionalServices: [SERVICE_UUID],
+          acceptAllDevices: true
+        });
+
+        server = await device.gatt.connect();
+        const service = await server.getPrimaryService(SERVICE_UUID);
+        commandCharacteristic = await service.getCharacteristic(CHARACTERISTIC_UUID);
+
+        console.log('Connected!');
+        enableControls(true);
+        document.getElementById('disconnectBtn').disabled = false;
+      } catch (error) {
+        alert('Bluetooth connection failed: ' + error.message);
+        console.error(error);
+      }
+    };
+
+    document.getElementById('disconnectBtn').onclick = async () => {
+      if (device && device.gatt.connected) {
+        await device.gatt.disconnect();
+        enableControls(false);
+        console.log('Disconnected.');
+        document.getElementById('disconnectBtn').disabled = true;
+      }
+    };
+
+    function enableControls(enabled) {
+      ['onBtn','offBtn','redBtn','greenBtn','blueBtn','customColor','setColorBtn','brightness','fadeColor1','fadeColor2','startFadeBtn','stopFadeBtn'].forEach(id => {
+        document.getElementById(id).disabled = !enabled;
+      });
+    }
+
+    async function sendCommand(bytes) {
+      if (!commandCharacteristic) return alert('Not connected');
+      try {
+        await commandCharacteristic.writeValue(new Uint8Array(bytes));
+        console.log('Sent:', bytes);
+      } catch (err) {
+        console.error('Write failed:', err);
+      }
+    }
+
+    const brightnessSlider = document.getElementById('brightness');
+    function getBrightness() {
+      return parseInt(brightnessSlider.value);
+    }
+
+    function colorCommand(r, g, b) {
+      return [0x7E, 0x07, 0x05, 0x03, r, g, b, getBrightness(), 0xEF];
+    }
+
+    document.getElementById('onBtn').onclick = () => sendCommand([0x7E, 0x04, 0x04, 0x01, 0x00, 0x01, 0xFF, 0x00, 0xEF]);
+    document.getElementById('offBtn').onclick = () => sendCommand([0x7E, 0x04, 0x04, 0x00, 0x00, 0x00, 0xFF, 0x00, 0xEF]);
+
+    document.getElementById('redBtn').onclick = () => sendCommand(colorCommand(255, 0, 0));
+    document.getElementById('greenBtn').onclick = () => sendCommand(colorCommand(0, 255, 0));
+    document.getElementById('blueBtn').onclick = () => sendCommand(colorCommand(0, 0, 255));
+
+    document.getElementById('setColorBtn').onclick = () => {
+      const color = document.getElementById('customColor').value;
+      const r = parseInt(color.slice(1, 3), 16);
+      const g = parseInt(color.slice(3, 5), 16);
+      const b = parseInt(color.slice(5, 7), 16);
+      sendCommand(colorCommand(r, g, b));
+    };
+
+    function hexToRgb(hex) {
+      return [
+        parseInt(hex.slice(1, 3), 16),
+        parseInt(hex.slice(3, 5), 16),
+        parseInt(hex.slice(5, 7), 16)
+      ];
+    }
+
+    document.getElementById('startFadeBtn').onclick = () => {
+      const color1 = hexToRgb(document.getElementById('fadeColor1').value);
+      const color2 = hexToRgb(document.getElementById('fadeColor2').value);
+      let step = 0;
+      let dir = 1;
+
+      clearInterval(fadeInterval);
+      fadeInterval = setInterval(() => {
+        const progress = step / 100;
+        const r = Math.round(color1[0] * (1 - progress) + color2[0] * progress);
+        const g = Math.round(color1[1] * (1 - progress) + color2[1] * progress);
+        const b = Math.round(color1[2] * (1 - progress) + color2[2] * progress);
+        sendCommand(colorCommand(r, g, b));
+
+        step += dir * 1;
+        if (step >= 100 || step <= 0) dir *= -1;
+      }, 50);
+    };
+
+    document.getElementById('stopFadeBtn').onclick = () => {
+      clearInterval(fadeInterval);
+    };
+  </script>
+</body>
+</html>
