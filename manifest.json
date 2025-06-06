@@ -3,24 +3,18 @@
   "short_name": "LED Controller",
   "description": "Advanced LED Strip Controller with Bluetooth connectivity",
   "start_url": "/Ledlightscontroller/",
+  "scope": "/Ledlightscontroller/",
   "display": "standalone",
   "background_color": "#0a0a0f",
   "theme_color": "#1a1a2e",
   "orientation": "portrait",
-  "scope": "/Ledlightscontroller/",
   "lang": "en",
   "categories": ["utilities", "productivity"],
   "icons": [
     {
-      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192' fill='%23ff6b6b'%3E%3Cpath d='M96 16l15.45 31.3L144 51.35l-25 24.35 5.9 34.4L96 88.85 67.1 110.1l5.9-34.4-25-24.35 32.55-4.05L96 16z'/%3E%3C/svg%3E",
-      "sizes": "192x192",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512' fill='%23ff6b6b'%3E%3Cpath d='M256 42.67l41.2 83.46 92.13 13.39-66.67 65.02 15.73 91.79L256 253.65l-82.39 42.68 15.73-91.79-66.67-65.02 92.13-13.39L256 42.67z'/%3E%3C/svg%3E",
+      "src": "https://cdn-icons-png.flaticon.com/512/9551/9551385.png",
       "sizes": "512x512",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ],
@@ -29,7 +23,7 @@
       "name": "Connect Device",
       "short_name": "Connect",
       "description": "Connect to LED strip device",
-      "url": "/?action=connect",
+      "url": "/Ledlightscontroller/?action=connect",
       "icons": [
         {
           "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%233b82f6'%3E%3Cpath d='M17.71 7.71L12 2h-1v7.59L6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 11 14.41V22h1l5.71-5.71-4.3-4.29 4.3-4.29z'/%3E%3C/svg%3E",
@@ -42,7 +36,7 @@
       "name": "Power Toggle",
       "short_name": "Power",
       "description": "Toggle LED power",
-      "url": "/?action=power",
+      "url": "/Ledlightscontroller/?action=power",
       "icons": [
         {
           "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2310b981'%3E%3Cpath d='M8 5v14l11-7z'/%3E%3C/svg%3E",
